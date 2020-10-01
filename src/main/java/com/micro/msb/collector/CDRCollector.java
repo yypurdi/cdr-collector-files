@@ -65,12 +65,14 @@ public class CDRCollector extends Thread {
                 File folder = new File(dirMainBase + File.separator + fileDirectoryInput);
                 for (final File fileEntry : folder.listFiles()) {
                     if (!fileEntry.isDirectory()) {
-                        String fileName = fileEntry.getName();
-                        LOG.info(fileName);
+                        String fileName = fileEntry.getName();                        
                         cdr.setFileName(fileName);
                         String message = gson.toJson(cdr);
+                        long start = System.currentTimeMillis();
                         requester.send(message.getBytes(), 0);
                         byte[] reply = requester.recv(0);
+                        long delta = System.currentTimeMillis() - start;
+                        LOG.info(fileName+"|"+Long.toString(delta));
                         LOG.info("Received Status : " + new String(reply));
                     }
                 }
