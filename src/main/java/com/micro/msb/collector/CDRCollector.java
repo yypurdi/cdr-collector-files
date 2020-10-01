@@ -1,6 +1,7 @@
 package com.micro.msb.collector;
 
 import com.google.gson.Gson;
+import java.io.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +17,8 @@ public class CDRCollector extends Thread {
     private String name;    
     @Value("${queue.balancer.router}")
     private String tcpConnect;
+    @Value("${dir.main.base}")
+    private String dirMainBase;
 
     private ZMQ.Context context;
     private ZMQ.Socket requester;
@@ -57,16 +60,26 @@ public class CDRCollector extends Thread {
         cdr.setFileExt(fileExt);
         
         Gson gson = new Gson();
-        
-        for (int requestNbr = 0; requestNbr < 1; requestNbr++) {
-            
-            cdr.setFileName("AIROUTPUTCDR_4006_AJKT32_7890_20200709-064233.AIR");
-            String message = gson.toJson(cdr);
-            requester.send(message.getBytes(), 0);
-            byte[] reply = requester.recv(0);
-            LOG.info("Received Status : " + new String(reply));
-            
+        try{
+            while(true){
+                File folder = new File(dirMainBase + File.separator + fileDirectoryInput);
+                for (final File fileEntry : folder.listFiles()) {
+                    if (!fileEntry.isDirectory()) {
+                        String fileName = fileEntry.getName();
+                        LOG.info(fileName);                        
+                        cdr.setFileName(fileName);
+                        String message = gson.toJson(cdr);
+                        requester.send(message.getBytes(), 0);
+                        byte[] reply = requester.recv(0);
+                        LOG.info("Received Status : " + new String(reply));                        
+                    }
+                }                
+                Thread.sleep(5000);
+            }
+        }catch(Exception e){
+            LOG.error(e.getMessage());
         }
+        
         requester.close();
         context.term();
     }
