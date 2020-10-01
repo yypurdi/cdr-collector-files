@@ -31,7 +31,7 @@ public class MainApplication implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
-        String fileDirectoryInput = "input";
+        String fileDirectoryInput = "input/AIR";
         String fileDirectoryOutput = "output";
         String fileType = "-air";
         String fileExt = null;
